@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MemorySizesInKB } from '../../enums/size.enum';
+import { MemoryUsage } from '../../components';
+import { MemorySizesInKB, MemoryTypes } from '../../enums/size.enum';
 import { createProcessWithPages } from '../../services/process.service';
-import { calculateSize, updatePhysicalMemory, updateVirtualMemory } from '../../utils';
+import { calculateSize, generateRandom, updatePhysicalMemory, updateVirtualMemory } from '../../utils';
 import './dashboard.style.scss';
 
 export function DashboardScreen() {
@@ -16,6 +17,7 @@ export function DashboardScreen() {
     freeSpace: MemorySizesInKB.PHYSICAL,
     next: 0,
   });
+  const [pageTable, setPageTable] = useState([]);
   const [newProcessWithPages, setNewProcessWithPages] = useState();
   const [newPages, setNewPages] = useState();
 
@@ -27,7 +29,18 @@ export function DashboardScreen() {
   useEffect(() => {
     const { process, pages } = createProcessWithPages(nextProcessName);
     if (hasFreeSpace) setNewProcessWithPages({ process, pages });
-  }, [hasFreeSpace, nextProcessName, newProcessWithPages]);
+  }, [hasFreeSpace, nextProcessName, newProcessWithPages, newPages]);
+
+  useEffect(() => {
+    if (!hasFreeSpace) {
+      const processName = `process${generateRandom(false, 0, createdProcesses?.length)}`;
+      const process = createdProcesses?.find((process) => process?.name === processName);
+      console.debug(process);
+      const pageName = `page-${generateRandom(false, 0, process?.pageCount)}`;
+      console.debug(pageName);
+    };
+  }, [hasFreeSpace, createdProcesses]);
+
 
   useEffect(() => {
     if (newProcessWithPages) {
@@ -47,23 +60,29 @@ export function DashboardScreen() {
   }, [createdProcesses, newProcessWithPages, setCreatedProcesses]);
 
   useEffect(() => {
-    const processIsAlreadyInMemory = virtualMemory?.memoryArray?.map((item) => item?.process).includes(newPages?.[0]?.process);
-    if (newPages?.length && !processIsAlreadyInMemory) {
-      if (physicalMemory?.freeSpace > 0) updatePhysicalMemory(physicalMemory, setPhysicalMemory, newPages[0]);
-      if (virtualMemory?.freeSpace > 0) updateVirtualMemory(virtualMemory, setVirtualMemory, newPages);
+    const processesNames = virtualMemory?.memoryArray?.map((item) => item?.process || 'undefined');
+    const validProcessesNames = Array.from(processesNames ? new Set(processesNames) : [])?.filter((name) => name !== 'undefined');
+    const processIsAlreadyInMemory = validProcessesNames.includes(newPages?.[0]?.process);
 
+    if (newPages?.length && newPages?.length < virtualMemory?.freeSpace && !processIsAlreadyInMemory) {
+      if (virtualMemory?.freeSpace > 0) updateVirtualMemory(virtualMemory, setVirtualMemory, newPages);
       setNewPages(null);
     }
-  }, [newPages, physicalMemory, virtualMemory]);
+  }, [newPages, virtualMemory]);
 
-  useEffect(() => {
-    console.debug('VIRTUALMEMORY -> ', virtualMemory);
-  }, [virtualMemory]);
+  // useEffect(() => {
+  //   console.debug('VIRTUALMEMORY -> ', virtualMemory);
+  // }, [virtualMemory]);
 
-  useEffect(() => {
-    console.debug('PHYSICALMEMORY -> ', physicalMemory);
-  }, [physicalMemory]);
+  // useEffect(() => {
+  //   console.debug('PHYSICALMEMORY -> ', physicalMemory);
+  // }, [physicalMemory]);
 
   // screen
-  return <div className="dashboard">Oi</div>;
+  return (
+    <div className="dashboard">
+      <MemoryUsage {...virtualMemory} type={MemoryTypes.VIRTUAL} />
+      <MemoryUsage {...physicalMemory} type={MemoryTypes.PHYSICAL} />
+    </div>
+  );
 }
