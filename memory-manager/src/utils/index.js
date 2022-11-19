@@ -1,3 +1,12 @@
-import { generateRandomNumber } from './generate-random.util';
+import { generateRandom } from './generate-random.util';
+import { sleep } from './sleep.util';
+import { calculateSize } from './calculate-memory-used-space.util';
+import { updateVirtualMemory, updatePhysicalMemory } from './memory.util';
 
-export { generateRandomNumber };
+export {
+  generateRandom,
+  sleep,
+  calculateSize,
+  updateVirtualMemory,
+  updatePhysicalMemory,
+};

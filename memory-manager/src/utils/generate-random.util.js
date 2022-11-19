@@ -1,6 +1,4 @@
-import { MemorySizesInKB } from "../enums";
-
-export function generateRandomNumber(type) {
-  const factor = MemorySizesInKB[type] || 512;
-  return Math.random() * factor;
+export function generateRandom(isSize) {
+  const factor = isSize ? 512 : 3000;
+  return Math.floor(Math.random() * factor) + 1;
 }
