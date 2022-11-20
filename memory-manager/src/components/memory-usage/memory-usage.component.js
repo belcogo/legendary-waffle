@@ -17,7 +17,7 @@ export function MemoryUsage({ memoryArray, freeSpace, type }) {
     const newUsagePerProcess = processesNames?.map((name) => {
       const pages = memoryArray?.filter((page) => page?.process === name);
       const pageCount = pages?.length;
-      const color = pages[0]?.color;
+      const color = pages?.[0]?.color;
       return {
         process: name,
         percentage: Math.round((100*pageCount)/MemorySizesInKB[type]),
@@ -42,13 +42,13 @@ export function MemoryUsage({ memoryArray, freeSpace, type }) {
         return (
           <div key={`usage_${process}-${percentage}`} style={{ display: 'flex' }} >
             <div style={{ width: '30px', height: '30px', borderRadius: '30px', backgroundColor: `#${color}` }} />
-            <span>{`${process} -> ${percentage}% | (${pageCount}/${MemorySizesInKB[type]} pages)`}</span>
+            <span>{`${process} -> ${percentage}% | (${pageCount}/${MemorySizesInKB[type]} frames)`}</span>
           </div>
         )
       })}
       <div style={{ display: 'flex' }} >
         <div style={{ width: '30px', height: '30px', borderRadius: '30px', backgroundColor: `#FFFFFF` }} />
-        <span>{`free -> ${freePercentage}% | (${freeSpace}/${MemorySizesInKB[type]} pages)`}</span>
+        <span>{`free -> ${freePercentage}% | (${freeSpace}/${MemorySizesInKB[type]} frames)`}</span>
       </div>
     </div>
   );

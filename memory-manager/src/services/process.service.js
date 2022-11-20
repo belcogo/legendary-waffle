@@ -1,5 +1,10 @@
+import axios from 'axios';
 import { MemorySizesInKB } from "../enums/size.enum";
 import { generateRandom, generateRandomColor, sleep } from "../utils";
+
+export async function saveCreatedProcess(process) {
+  return axios.post('http://localhost:4000/createdProcesses', process);
+}
 
 export function createProcess({ name }) {
   const size = generateRandom(true, 1);
@@ -31,11 +36,12 @@ export async function executeProcessPage({ name, executable }) {
   return `${name} - DONE`;
 }
 
-export function createProcessWithPages(processName) {
+export async function createProcessWithPages(processName) {
+  await sleep();
   const process = createProcess({ name: processName });
   const pages = [];
-  const { color } = process;
-  for (let i = 0; i < process.pageCount; i++) {
+  const { color, pageCount } = process;
+  for (let i = 0; i < pageCount; i++) {
     const page = createProcessPage({ process: processName, name: `page-${i}`, sequencial: null, color });
     pages.push(page);
   }
