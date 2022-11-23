@@ -40,10 +40,6 @@ export function getFreeFramePhysicalMemory({ memoryArray }) {
   return memoryArray?.findIndex((frame) => !frame?.name);
 }
 
-export function addNewPageReference(pageTable, setPageTable) {
-  setPageTable([...pageTable, { frame: null, valid: false }]);
-}
-
 export function updatePageReference(pageTable, setPageTable, updatedItems) {
   let itemsToUpdate = updatedItems?.length;
   const updatedList = pageTable?.map((reference, index) => {
@@ -76,4 +72,16 @@ export function freeFrame(physicalMemory, setPhysicalMemory, sequencial, newPage
   setPhysicalMemory(updatedList);
 
   return { pageNumber, frameNumber };
+}
+
+export function updateCreatedProcesses(createdProcesses, setCreatedProcesses, updatedProcess) {
+  const updatedList = createdProcesses?.map((process) => {
+    if (process?.name === updatedProcess?.name) {
+      return updatedProcess;
+    }
+
+    return process;
+  });
+
+  setCreatedProcesses(updatedList);
 }

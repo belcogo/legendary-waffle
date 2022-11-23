@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { MemoryTitle } from "../../enums";
 import { MemorySizesInKB } from "../../enums/size.enum";
 import './memory-usage.style.scss';
 
@@ -29,27 +30,33 @@ export function MemoryUsage({ memoryArray, freeSpace, type }) {
   }, [memoryArray, processesNames, type]);
 
   return (
-    <div>
-      <div className="memory">
-        {usagePerProcess?.map(({ process, percentage, color }) => {
+    <div className="memoryContainer">
+      <div className="usageContainer">
+        <h2>{MemoryTitle[type]}</h2>
+        <div className="memory">
+          {usagePerProcess?.map(({ process, percentage, color }) => {
+            return (
+              <div className="allocation" key={`${process}-${percentage}`} style={{ flex: percentage, backgroundColor: `#${color}` }} />
+            )
+          })}
+          <div className="allocation" key={`free-${freePercentage}`} style={{ flex: freePercentage, backgroundColor: `#FFFFFF` }} />
+        </div>
+      </div>
+
+      <ul className="subtitle">
+        {usagePerProcess?.map(({ process, percentage, color, pageCount }) => {
           return (
-            <div className="allocation" key={`${process}-${percentage}`} style={{ flex: percentage, backgroundColor: `#${color}` }} />
+            <li key={`usage_${process}-${percentage}`} style={{ display: 'flex' }} >
+              <div className="processColor" style={{ backgroundColor: `#${color}` }} />
+              <span className="label">{`${process} -> ${percentage}% | ${pageCount}/${MemorySizesInKB[type]} frames`}</span>
+            </li>
           )
         })}
-        <div className="allocation" key={`free-${freePercentage}`} style={{ flex: freePercentage, backgroundColor: `#FFFFFF` }} />
-      </div>
-      {usagePerProcess?.map(({ process, percentage, color, pageCount }) => {
-        return (
-          <div key={`usage_${process}-${percentage}`} style={{ display: 'flex' }} >
-            <div style={{ width: '30px', height: '30px', borderRadius: '30px', backgroundColor: `#${color}` }} />
-            <span>{`${process} -> ${percentage}% | (${pageCount}/${MemorySizesInKB[type]} frames)`}</span>
-          </div>
-        )
-      })}
-      <div style={{ display: 'flex' }} >
-        <div style={{ width: '30px', height: '30px', borderRadius: '30px', backgroundColor: `#FFFFFF` }} />
-        <span>{`free -> ${freePercentage}% | (${freeSpace}/${MemorySizesInKB[type]} frames)`}</span>
-      </div>
+        <li style={{ display: 'flex' }} >
+          <div className="processColor" style={{ backgroundColor: `#FFFFFF` }} />
+          <span className="label">{`free -> ${freePercentage}% | ${freeSpace}/${MemorySizesInKB[type]} frames`}</span>
+        </li>
+      </ul>
     </div>
   );
 }

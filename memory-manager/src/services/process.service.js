@@ -1,10 +1,5 @@
-import axios from 'axios';
 import { MemorySizesInKB } from "../enums/size.enum";
 import { generateRandom, generateRandomColor, sleep } from "../utils";
-
-export async function saveCreatedProcess(process) {
-  return axios.post('http://localhost:4000/createdProcesses', process);
-}
 
 export function createProcess({ name }) {
   const size = generateRandom(true, 1);

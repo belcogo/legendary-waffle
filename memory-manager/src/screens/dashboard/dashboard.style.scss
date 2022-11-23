@@ -1,6 +1,36 @@
+@import '../../style/variables.scss';
+
 .dashboard {
-  background-color: #282c34;
+  background-color: $background;
   min-height: 100vh;
-  color: #F5F5F5;
+  color: $white;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .buttonsBox {
+    display: flex;
+    width: 35%;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+
+    button {
+      background-color: $button-background;
+      padding: .5rem 0;
+      border: 2px solid transparent;
+      width: 150px;
+      border-radius: .25rem;
+      color: $white;
+      text-transform: uppercase;
+      font-weight: 600;
+      box-shadow: $shadow;
+
+      &.active {
+        border-color: $white;
+        box-shadow: $highlight-shadow;
+      }
+    }
+  }
+
 }

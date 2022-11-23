@@ -1,3 +1,9 @@
-import { MemoryUsage } from './memory-usage/memory-usage.component'
+import { Memories } from './memories/memories.component';
+import { Header } from './header/header.component';
+import { PageTable } from './page-table/page-table.component';
 
-export { MemoryUsage };
+export {
+  Memories, 
+  Header,
+  PageTable,
+};

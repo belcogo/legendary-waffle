@@ -1,8 +1,55 @@
-.memory {
-  background-color: #F5F5F5;
-  height: 20px;
-  display: flex;
-  width: calc(100% - 20px);
-  margin: auto;
-  border-radius: 8px;
+@import '../../style/_variables.scss';
+
+.memoryContainer {
+  flex: 1;
+  padding: .5rem;
+
+  .usageContainer {
+    padding: 15px;
+    background: rgba($gray-detail, .1);
+    border-radius: .25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-bottom: 2rem;
+    box-shadow: $shadow;
+
+    > h2 {
+      margin: 0;
+      margin-bottom: 1rem;
+      font-weight: 400;
+    }
+
+    .memory {
+      background-color: $white;
+      height: 20px;
+      display: flex;
+      width: 100%;
+      border-radius: 8px;
+
+      .allocation:hover {
+        box-shadow: $highlight-shadow;
+        z-index: 1;
+      }
+    }
+  }
+
+  .subtitle {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      display: flex;
+      align-items: center;
+      margin: .5rem 0;
+
+      .processColor {
+        width: 20px;
+        height: 20px;
+        border-radius: .25rem;
+        margin-right: .5rem;
+      }
+    }
+  }
 }
