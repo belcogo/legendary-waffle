@@ -9,6 +9,7 @@ import {
   updatePageReference,
   freeFrame,
   updateCreatedProcesses,
+  addNewPageReference,
 } from './memory.util';
 
 export {
@@ -23,4 +24,5 @@ export {
   getMin,
   freeFrame,
   updateCreatedProcesses,
+  addNewPageReference,
 };

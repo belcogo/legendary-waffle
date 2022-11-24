@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { MemoryTitle } from "../../enums";
-import { MemorySizesInKB } from "../../enums/size.enum";
+import { MemorySizesInKB, MemoryTypes } from "../../enums/size.enum";
 import './memory-usage.style.scss';
 
 export function MemoryUsage({ memoryArray, freeSpace, type }) {
@@ -12,7 +12,7 @@ export function MemoryUsage({ memoryArray, freeSpace, type }) {
     const processesNames = memoryArray?.map((item) =>  item?.process || 'undefined');
     const validProcessesNames = Array.from(new Set(processesNames));
     setProcessesNames(processesNames ? validProcessesNames?.filter((a) => a !== 'undefined') : []);
-  }, [memoryArray]);
+  }, [memoryArray, type]);
 
   useEffect(() => {
     const newUsagePerProcess = processesNames?.map((name) => {

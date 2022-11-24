@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Header, Memories, PageTable } from '../../components';
+import { Header, Memories, ProcessesTable } from '../../components';
 import { MemorySizesInKB } from '../../enums/size.enum';
 import { createProcessWithPages } from '../../services/process.service';
 import {
@@ -13,6 +13,7 @@ import {
   getMin,
   freeFrame,
   updateCreatedProcesses,
+  addNewPageReference,
 } from '../../utils';
 import './dashboard.style.scss';
 
@@ -28,12 +29,14 @@ export function DashboardScreen() {
     freeSpace: MemorySizesInKB.PHYSICAL,
     next: 0,
   });
-  const [pageTable, setPageTable] = useState(new Array(MemorySizesInKB.VIRTUAL).fill({ frame: null, valid: false }));
+  const [pageTable, setPageTable] = useState([]);
   const [newProcessWithPages, setNewProcessWithPages] = useState();
   const [newPages, setNewPages] = useState();
   const [isExecuting, setIsExecuting] = useState();
   const [wait, setWait] = useState();
   const [activeTab, setActiveTab] = useState(0);
+  const [processToUpdate, setProcessToUpdate] = useState(null);
+  const [updatedPageTable, setUpdatedPageTable] = useState(pageTable);
 
   // useMemo
   const nextProcessName = useMemo(() => `process${createdProcesses?.length}`, [createdProcesses?.length]);
@@ -49,9 +52,7 @@ export function DashboardScreen() {
     callCreateProcessWithPages();
   }, [hasFreeSpace, nextProcessName, newProcessWithPages, newPages]);
 
-  const getPage = useCallback(async (processesList, pageTable, physicalMemory, virtualMemory) => {
-    console.debug(physicalMemory);
-    console.debug(virtualMemory);
+  const getPage = useCallback(async (processesList, pMemory, vMemory) => {
     setIsExecuting(true);
     let process = null;
     let processName;
@@ -59,71 +60,73 @@ export function DashboardScreen() {
 
     while (!process) {
       processName = `process${generateRandom(false, 0, processesList?.length)}`;
+      // eslint-disable-next-line no-loop-func
       process = processesList?.find((process) => process?.name === processName);
     }
 
-    const pageNumber = generateRandom(false, 0, process?.pageCount);
+    const pageNumber = generateRandom(false, 0, process?.pageCount * 2) || 40;
     const pageName = `page-${pageNumber}`;
-    console.debug('PROCESS & PAGE -> ', processName, pageName);
 
     process.pagesRequested += 1; 
 
-    const { memoryArray: physicalMemoryArray } = physicalMemory || {};
+    const { memoryArray: physicalMemoryArray } = pMemory || {};
 
     let page = physicalMemoryArray?.find((page) => page?.process === processName && page?.name === pageName);
-    console.debug(page);
     if (page) {
       await page?.executable();
-      console.debug('OK');
-      setIsExecuting(false);
-      process.pageSucessCount += 1;
+      process.pageSuccessCount += 1;
     } else {
-      console.debug('TLB FAIL');
-      // TLB FAIL
-      const { memoryArray: virtualMemoryArray } = virtualMemory || {};
+      const { memoryArray: virtualMemoryArray } = vMemory || {};
       await sleep();
+      console.debug('oi');
+      process.virtualMemoryAccess += 1;
       page = virtualMemoryArray?.find((page) => page?.process === processName && page?.name === pageName);
       if (page) {
-        process.pageSucessCount += 1;
-        console.debug('TLB FAIL -> OK');
+        process.pageSuccessCount += 1;
+  
         let frameNumber = getFreeFramePhysicalMemory(physicalMemory);
         if (frameNumber >= 0) {
-          const aaa = [
+          const newPageTableReferences = [
             { pageReference: pageNumber, physicalMemoryFrame: `${frameNumber}` },
           ];
-          updatePageReference(pageTable, setPageTable, aaa);
+
+          updatePageReference(pageTable, setPageTable, newPageTableReferences);
           updatePhysicalMemory(physicalMemory, setPhysicalMemory, page, frameNumber);
         } else {
           const sequencial = getMin(physicalMemory?.memoryArray);
-          console.debug('SEQUENCIAL -> ', sequencial);
+    
           const { pageNumber: pageToFree, frameNumber: newFrameNumber } = freeFrame(physicalMemory, setPhysicalMemory, sequencial, page);
-          const aaa = [
+          const newPageTableReferences = [
             { pageReference: pageToFree },
             { pageReference: pageNumber, physicalMemoryFrame: `${newFrameNumber}` },
           ];
-          updatePageReference(pageTable, setPageTable, aaa);
+          updatePageReference(pageTable, setPageTable, newPageTableReferences);
           updatePhysicalMemory(physicalMemory, setPhysicalMemory, page, newFrameNumber);
         }
         await page?.executable();
-        setIsExecuting(false);
-        setWait(false);
+        
       } else {
         process.pageFailCount += 1;
-        console.debug('PAGE FAIL');
-        setIsExecuting(false);
       }
     }
+    setProcessToUpdate(process);
     setIsExecuting(false);
-    updateCreatedProcesses(processesList, setCreatedProcesses, process);
-  }, []);
+    setWait(false);
+    // updateCreatedProcesses(processesList, setCreatedProcesses, process);
+  }, [pageTable, physicalMemory]);
 
   useEffect(() => {
-    if (wait) return;
+    async function callGetPage() {
+      if (wait) return;
 
-    if (createdProcesses?.length > 0 && !isExecuting && virtualMemory?.freeSpace < 128) {
-      getPage(createdProcesses, pageTable, physicalMemory, virtualMemory);
+      if (createdProcesses?.length > 0 && !isExecuting && virtualMemory?.freeSpace < 128) {
+        await getPage(createdProcesses, physicalMemory, virtualMemory);
+      }
     }
-  }, [createdProcesses, getPage, isExecuting, pageTable, physicalMemory, virtualMemory, wait]);
+
+    callGetPage();
+    
+  }, [createdProcesses, getPage, isExecuting, physicalMemory, virtualMemory, wait, pageTable]);
 
   useEffect(() => {
     if (newProcessWithPages) {
@@ -135,6 +138,7 @@ export function DashboardScreen() {
         && !createdProcesses.map(({ name }) => name).includes(newProcessWithPages?.process?.name)
       ) {
         setCreatedProcesses([...createdProcesses, newProcessWithPages?.process]);
+        addNewPageReference(pageTable, setPageTable);
         setNewPages(newProcessWithPages?.pages);
         setNewProcessWithPages(null);
       }
@@ -153,17 +157,26 @@ export function DashboardScreen() {
     setWait(false);
   }, [newPages, virtualMemory]);
 
+  useEffect(() => console.debug('CREATED -> ', createdProcesses), [createdProcesses]);
+
+  useEffect(() => {
+    if (processToUpdate) {
+      updateCreatedProcesses(createdProcesses, setCreatedProcesses, processToUpdate);
+      setProcessToUpdate(null);
+    }
+  }, [processToUpdate, createdProcesses]);
+
   // screen
   return (
     <div className="dashboard">
       <Header />
       <div className="buttonsBox">
         <button className={`${activeTab === 0 ? 'active' : ''}`} onClick={() => setActiveTab(0)}>Memories</button>
-        <button className={`${activeTab === 1 ? 'active' : ''}`} onClick={() => setActiveTab(1)}>Page Table</button>
+        <button className={`${activeTab === 1 ? 'active' : ''}`} onClick={() => setActiveTab(1)}>Processes Info</button>
       </div>
 
       {activeTab === 0 && <Memories virtualMemory={virtualMemory} physicalMemory={physicalMemory} />}
-      {activeTab === 1 && <PageTable pageTable={pageTable} />}
+      {activeTab === 1 && <ProcessesTable createdProcesses={createdProcesses} />}
     </div>
   );
 }

@@ -20,7 +20,7 @@ export function updatePhysicalMemory(physicalMemory, setPhysicalMemory, newPage,
     freeSpace,
     memoryArray,
     next,
-  } = physicalMemory;
+  } = physicalMemory || {};
 
   const updatedList = memoryArray?.map((frame, index) => {
     if (index === desiredIndex) {
@@ -38,6 +38,10 @@ export function updatePhysicalMemory(physicalMemory, setPhysicalMemory, newPage,
 
 export function getFreeFramePhysicalMemory({ memoryArray }) {
   return memoryArray?.findIndex((frame) => !frame?.name);
+}
+
+export function addNewPageReference(pageTable, setPageTable) {
+  setPageTable([...pageTable, { frame: null, valid: false }])
 }
 
 export function updatePageReference(pageTable, setPageTable, updatedItems) {
@@ -63,7 +67,6 @@ export function freeFrame(physicalMemory, setPhysicalMemory, sequencial, newPage
     if (page?.sequencial === sequencial) {
       pageNumber = Number(page?.name?.replace('page-', ''));
       frameNumber = index;
-      return newPage;
     }
 
     return page;

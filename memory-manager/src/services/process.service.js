@@ -8,7 +8,8 @@ export function createProcess({ name }) {
     size,
     pagesRequested: 0,
     pageFailCount: 0,
-    pageSucessCount: 0,
+    virtualMemoryAccess: 0,
+    pageSuccessCount: 0,
     pageCount: Math.ceil(size/MemorySizesInKB.FRAME),
     color: generateRandomColor(),
   }
