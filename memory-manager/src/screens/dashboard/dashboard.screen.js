@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Header, Memories, ProcessesTable } from '../../components';
+import { Header, Memories, PageTable, ProcessesTable } from '../../components';
 import { MemorySizesInKB } from '../../enums/size.enum';
 import { createProcessWithPages } from '../../services/process.service';
 import {
@@ -78,7 +78,6 @@ export function DashboardScreen() {
     } else {
       const { memoryArray: virtualMemoryArray } = vMemory || {};
       await sleep();
-      console.debug('oi');
       process.virtualMemoryAccess += 1;
       page = virtualMemoryArray?.find((page) => page?.process === processName && page?.name === pageName);
       if (page) {
@@ -89,8 +88,7 @@ export function DashboardScreen() {
           const newPageTableReferences = [
             { pageReference: pageNumber, physicalMemoryFrame: `${frameNumber}` },
           ];
-
-          updatePageReference(pageTable, setPageTable, newPageTableReferences);
+          setUpdatedPageTable(newPageTableReferences);
           updatePhysicalMemory(physicalMemory, setPhysicalMemory, page, frameNumber);
         } else {
           const sequencial = getMin(physicalMemory?.memoryArray);
@@ -100,7 +98,7 @@ export function DashboardScreen() {
             { pageReference: pageToFree },
             { pageReference: pageNumber, physicalMemoryFrame: `${newFrameNumber}` },
           ];
-          updatePageReference(pageTable, setPageTable, newPageTableReferences);
+          setUpdatedPageTable(newPageTableReferences);
           updatePhysicalMemory(physicalMemory, setPhysicalMemory, page, newFrameNumber);
         }
         await page?.executable();
@@ -112,12 +110,11 @@ export function DashboardScreen() {
     setProcessToUpdate(process);
     setIsExecuting(false);
     setWait(false);
-    // updateCreatedProcesses(processesList, setCreatedProcesses, process);
-  }, [pageTable, physicalMemory]);
+  }, [physicalMemory]);
 
   useEffect(() => {
     async function callGetPage() {
-      if (wait) return;
+      if (wait || processToUpdate || updatedPageTable) return;
 
       if (createdProcesses?.length > 0 && !isExecuting && virtualMemory?.freeSpace < 128) {
         await getPage(createdProcesses, physicalMemory, virtualMemory);
@@ -126,7 +123,7 @@ export function DashboardScreen() {
 
     callGetPage();
     
-  }, [createdProcesses, getPage, isExecuting, physicalMemory, virtualMemory, wait, pageTable]);
+  }, [createdProcesses, getPage, isExecuting, physicalMemory, virtualMemory, wait, pageTable, processToUpdate, updatedPageTable]);
 
   useEffect(() => {
     if (newProcessWithPages) {
@@ -157,7 +154,7 @@ export function DashboardScreen() {
     setWait(false);
   }, [newPages, virtualMemory]);
 
-  useEffect(() => console.debug('CREATED -> ', createdProcesses), [createdProcesses]);
+  useEffect(() => console.debug('PAGE TABLE -> ', pageTable), [pageTable]);
 
   useEffect(() => {
     if (processToUpdate) {
@@ -166,17 +163,26 @@ export function DashboardScreen() {
     }
   }, [processToUpdate, createdProcesses]);
 
+  useEffect(() => {
+    if (updatedPageTable) {
+      updatePageReference(pageTable, setPageTable, updatedPageTable);
+      setUpdatedPageTable(null);
+    }
+  }, [updatedPageTable, pageTable]);
+
   // screen
   return (
     <div className="dashboard">
       <Header />
       <div className="buttonsBox">
         <button className={`${activeTab === 0 ? 'active' : ''}`} onClick={() => setActiveTab(0)}>Memories</button>
-        <button className={`${activeTab === 1 ? 'active' : ''}`} onClick={() => setActiveTab(1)}>Processes Info</button>
+        <button className={`${activeTab === 1 ? 'active' : ''}`} onClick={() => setActiveTab(1)}>Page Table</button>
+        <button className={`${activeTab === 2 ? 'active' : ''}`} onClick={() => setActiveTab(2)}>Processes Info</button>
       </div>
 
       {activeTab === 0 && <Memories virtualMemory={virtualMemory} physicalMemory={physicalMemory} />}
-      {activeTab === 1 && <ProcessesTable createdProcesses={createdProcesses} />}
+      {activeTab === 1 && <PageTable pageTable={pageTable} />}
+      {activeTab === 2 && <ProcessesTable createdProcesses={createdProcesses} />}
     </div>
   );
 }
