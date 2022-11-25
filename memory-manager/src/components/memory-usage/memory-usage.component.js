@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { processToShowState } from "../../atoms/process.atom";
 import { MemoryTitle } from "../../enums";
-import { MemorySizesInKB, MemoryTypes } from "../../enums/size.enum";
+import { MemorySizesInKB } from "../../enums/size.enum";
 import './memory-usage.style.scss';
 
 export function MemoryUsage({ memoryArray, freeSpace, type, createdProcesses }) {
