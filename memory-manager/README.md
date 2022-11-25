@@ -3,6 +3,18 @@
 
 ## Objetivos
 Aplicar os conceitos fundamentais de gerenciamento de memória e processos leves, implementando um simulador de página virtual.
+
+## Pré-requisitos
+- Node (v14.18.3)
+- Yarn (latest)
+
+## Como rodar
+- Clonar o repositório
+- Acessar o diretório `memory-manager` pelo terminal
+- Executar o comando `yarn` para instalar as dependências do projeto
+- Executar o comando `yarn start` para rodar o projeto
+
+(Deve abrir uma aba do navegador no endereço `localhost:3000`)
 ____
 ## Enunciado
 Supondo um sistema fictício de hardware e software, com:
