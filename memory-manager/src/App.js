@@ -1,7 +1,12 @@
+import { RecoilRoot } from 'recoil';
 import { DashboardScreen } from './screens';
 
 function App() {
-  return <DashboardScreen />;
+  return (
+    <RecoilRoot>
+      <DashboardScreen />
+    </RecoilRoot>
+  );
 }
 
 export default App;

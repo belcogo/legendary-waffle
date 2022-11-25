@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSetRecoilState } from "recoil";
+import { processToShowState } from "../../atoms/process.atom";
 import { MemoryTitle } from "../../enums";
 import { MemorySizesInKB, MemoryTypes } from "../../enums/size.enum";
 import './memory-usage.style.scss';
 
-export function MemoryUsage({ memoryArray, freeSpace, type }) {
+export function MemoryUsage({ memoryArray, freeSpace, type, createdProcesses }) {
   const [processesNames, setProcessesNames] = useState();
   const [usagePerProcess, setUsagePerProcess] = useState();
   const freePercentage = useMemo(() => Math.round(100*freeSpace/MemorySizesInKB[type]), [freeSpace, type]);
+  const setProcessToShow = useSetRecoilState(processToShowState);
 
   useEffect(() => {
     const processesNames = memoryArray?.map((item) =>  item?.process || 'undefined');
@@ -29,6 +32,10 @@ export function MemoryUsage({ memoryArray, freeSpace, type }) {
     setUsagePerProcess(newUsagePerProcess);
   }, [memoryArray, processesNames, type]);
 
+  const handleClick = (processName) => {
+    setProcessToShow(processName);
+  }
+
   return (
     <div className="memoryContainer">
       <div className="usageContainer">
@@ -46,7 +53,7 @@ export function MemoryUsage({ memoryArray, freeSpace, type }) {
       <ul className="subtitle">
         {usagePerProcess?.map(({ process, percentage, color, pageCount }) => {
           return (
-            <li key={`usage_${process}-${percentage}`} style={{ display: 'flex' }} >
+            <li key={`usage_${process}-${percentage}`} style={{ display: 'flex' }} onClick={() => handleClick(process)} >
               <div className="processColor" style={{ backgroundColor: `#${color}` }} />
               <span className="label">{`${process} -> ${percentage}% | ${pageCount}/${MemorySizesInKB[type]} frames`}</span>
             </li>
